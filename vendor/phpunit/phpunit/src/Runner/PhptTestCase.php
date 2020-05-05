@@ -27,7 +27,7 @@ use Throwable;
 /**
  * @internal This class is not covered by the backward compatibility promise for PHPUnit
  */
-final class PhptTestCase implements Test, SelfDescribing
+final class PhptTestCase implements SelfDescribing, Test
 {
     /**
      * @var string[]
@@ -38,17 +38,17 @@ final class PhptTestCase implements Test, SelfDescribing
         'auto_prepend_file=',
         'disable_functions=',
         'display_errors=1',
-        'docref_root=',
         'docref_ext=.html',
+        'docref_root=',
         'error_append_string=',
         'error_prepend_string=',
         'error_reporting=-1',
         'html_errors=0',
         'log_errors=0',
         'magic_quotes_runtime=0',
-        'output_handler=',
         'open_basedir=',
         'output_buffering=Off',
+        'output_handler=',
         'report_memleaks=0',
         'report_zend_debug=0',
         'safe_mode=0',
@@ -102,7 +102,6 @@ final class PhptTestCase implements Test, SelfDescribing
      * Runs a test and collects its result in a TestResult instance.
      *
      * @throws Exception
-     * @throws \ReflectionException
      * @throws \SebastianBergmann\CodeCoverage\CoveredCodeNotExecutedException
      * @throws \SebastianBergmann\CodeCoverage\InvalidArgumentException
      * @throws \SebastianBergmann\CodeCoverage\MissingCoversAnnotationException
@@ -180,15 +179,17 @@ final class PhptTestCase implements Test, SelfDescribing
         }
 
         try {
-            $this->assertPhptExpectation($sections, $jobResult['stdout']);
+            $this->assertPhptExpectation($sections, $this->output);
         } catch (AssertionFailedError $e) {
             $failure = $e;
 
             if ($xfail !== false) {
                 $failure = new IncompleteTestError($xfail, 0, $e);
             } elseif ($e instanceof ExpectationFailedException) {
-                if ($e->getComparisonFailure()) {
-                    $diff = $e->getComparisonFailure()->getDiff();
+                $comparisonFailure = $e->getComparisonFailure();
+
+                if ($comparisonFailure) {
+                    $diff = $comparisonFailure->getDiff();
                 } else {
                     $diff = $e->getMessage();
                 }
@@ -200,7 +201,8 @@ final class PhptTestCase implements Test, SelfDescribing
                     0,
                     $trace[0]['file'],
                     $trace[0]['line'],
-                    $trace
+                    $trace,
+                    $comparisonFailure ? $diff : ''
                 );
             }
 
@@ -395,20 +397,20 @@ final class PhptTestCase implements Test, SelfDescribing
         $section  = '';
 
         $unsupportedSections = [
-            'REDIRECTTEST',
-            'REQUEST',
-            'POST',
-            'PUT',
-            'POST_RAW',
-            'GZIP_POST',
-            'DEFLATE_POST',
-            'GET',
-            'COOKIE',
-            'HEADERS',
             'CGI',
+            'COOKIE',
+            'DEFLATE_POST',
             'EXPECTHEADERS',
             'EXTENSIONS',
+            'GET',
+            'GZIP_POST',
+            'HEADERS',
             'PHPDBG',
+            'POST',
+            'POST_RAW',
+            'PUT',
+            'REDIRECTTEST',
+            'REQUEST',
         ];
 
         $lineNr = 0;
@@ -576,7 +578,7 @@ final class PhptTestCase implements Test, SelfDescribing
             $globals = '$GLOBALS[\'__PHPUNIT_BOOTSTRAP\'] = ' . \var_export(
                 $GLOBALS['__PHPUNIT_BOOTSTRAP'],
                 true
-                ) . ";\n";
+            ) . ";\n";
         }
 
         $template->setVar(

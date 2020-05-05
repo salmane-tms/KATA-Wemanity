@@ -17,14 +17,14 @@ final class GildedRose {
 	
     public function updateQuality() {
         foreach ($this->items as $item) {
-			if ($item->quality ==50 && ($item->name == "Aged Brie" || $items->name== "Backstage passes") ) {
+			if ($item->quality >=50 && ($item->name == "Aged Brie" || $items->name== "Backstage passes") ) {
 				//print(" \n Item cannot have quality value more than 50 ! \n");
-			}elseif ($item->quality==0 && ($item->name != "Aged Brie" && $item->name!= "Backstage passes") ){
-				//print(" \n Item cannot have quality value less than 0 ! \n");
+			}elseif ($item->quality<=0 && ($item->name != "Aged Brie" && $item->name!= "Backstage passes") ){
+				print(" \n Item cannot have quality value less than 0 ! \n");
 			}elseif($this->checkName($item->name,"Sulfuras")){
 				//print(" \n Impossible to alter Sulfuras item  \n");
-			}elseif($item->quality==0 || $item->sell_in==0){
-				//print(" \n Impossible to alter this item \n");
+			}elseif($item->quality<=0 || $item->sell_in<=0){
+				print(" \n Impossible to alter this item \n");
 			}else{
 				switch($item->name){
 					case $this->checkName($item->name,"Conjured"):
